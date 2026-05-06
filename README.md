@@ -72,7 +72,7 @@ An AI-powered document assistant that lets you **upload documents and chat with 
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/scalerbooklm.git
+git clone https://github.com/akshat-code21/ScalerbookLM.git
 cd scalerbooklm
 
 # Install dependencies
@@ -151,4 +151,4 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | Text   | `.txt`, `.md`, `.json`, `.html`, `.xml`       |
 | Code   | `.js`, `.ts`, `.tsx`, `.jsx`                  |
 
---
+---
