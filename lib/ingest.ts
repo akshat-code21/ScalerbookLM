@@ -5,9 +5,7 @@ import { CSVLoader } from "@langchain/community/document_loaders/fs/csv"
 import { TextLoader } from "@langchain/classic/document_loaders/fs/text"
 import { Chroma } from "@langchain/community/vectorstores/chroma"
 import { createOpenRouterEmbeddings } from "./embedding"
-
-const uploadDir = () =>
-  path.resolve(process.env.ROOT_PATH ?? "", "public/uploads")
+import { getUploadsDir } from "./uploads"
 
 const textExtensions = new Set([
   ".txt",
@@ -24,7 +22,7 @@ const textExtensions = new Set([
 export const ingestFile = async (file: File, storedFileName?: string) => {
   try {
     const fileName = storedFileName ?? file.name
-    const filePath = path.join(uploadDir(), fileName)
+    const filePath = path.join(getUploadsDir(), fileName)
     const extension = path.extname(fileName).toLowerCase()
     let docs
     if (file.type === "application/pdf" || extension === ".pdf") {

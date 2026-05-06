@@ -120,7 +120,7 @@ const Example = () => {
             name: data.name,
             originalName: file.name,
             size: file.size,
-            url: `/uploads/${encodeURIComponent(data.name)}`,
+            url: `/api/uploads/${encodeURIComponent(data.name)}`,
             uploadedAt: new Date().toISOString(),
           });
           setFiles((prevFiles) => prevFiles.filter((prevFile) => prevFile !== file));

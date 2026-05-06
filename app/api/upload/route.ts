@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import fs from "fs"
-import path from "path"
+import fs from "node:fs/promises"
 import { ingestFile } from "@/lib/ingest"
+import { getStoredUploadPath, getUploadsDir } from "@/lib/uploads"
 
-const UPLOAD_DIR = path.resolve(process.env.ROOT_PATH ?? "", "public/uploads")
+export const runtime = "nodejs"
+
 export async function POST(req: NextRequest) {
   let storedFileName: string | undefined
   try {
@@ -14,16 +15,11 @@ export async function POST(req: NextRequest) {
     const prefix = Date.now()
 
     if (file) {
-      storedFileName = `${prefix}-${(body.file as File).name}`
+      storedFileName = `${prefix}-${(body.file as File).name.replaceAll("/", "-")}`
       const buffer = Buffer.from(await file.arrayBuffer())
-      if (!fs.existsSync(UPLOAD_DIR)) {
-        fs.mkdirSync(UPLOAD_DIR)
-      }
+      await fs.mkdir(getUploadsDir(), { recursive: true })
 
-      fs.writeFileSync(
-        path.resolve(UPLOAD_DIR, storedFileName),
-        buffer
-      )
+      await fs.writeFile(getStoredUploadPath(storedFileName), buffer)
 
       await ingestFile(body.file as File, storedFileName)
     } else {
@@ -39,10 +35,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error(error)
     if (storedFileName) {
-      const filePath = path.resolve(UPLOAD_DIR, storedFileName)
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath)
-      }
+      await fs.rm(getStoredUploadPath(storedFileName), { force: true })
     }
     return NextResponse.json(
       {
