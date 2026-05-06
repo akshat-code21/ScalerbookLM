@@ -16,7 +16,7 @@ Your Goal:
 Provide reliable, context-grounded answers that prevent hallucinations and ensure all responses are fully supported by the uploaded documents.
 
 Result:
-- Plain text response
+- Plain text response without any markdown formatting.
 - Include:
   1. Direct answer
 
