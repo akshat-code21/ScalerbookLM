@@ -6,6 +6,7 @@ import { TextLoader } from "@langchain/classic/document_loaders/fs/text"
 import { Chroma } from "@langchain/community/vectorstores/chroma"
 import { createOpenRouterEmbeddings } from "./embedding"
 import { getUploadsDir } from "./uploads"
+import { QdrantVectorStore } from "@langchain/qdrant";
 
 const textExtensions = new Set([
   ".txt",
@@ -63,10 +64,23 @@ export const ingestFile = async (file: File, storedFileName?: string) => {
     if (!embeddings) {
       throw new Error("Embeddings not created");
     }
-    const vectorStore = new Chroma(embeddings, {
+    // const vectorStore = new Chroma(embeddings, {
+    //   collectionName: "assignment-3",
+    //   chromaCloudAPIKey: process.env.CHROMA_API_KEY,
+    //   clientParams: {
+    //     host: "api.trychroma.com",
+    //     port: 8000,
+    //     ssl: true,
+    //     tenant: process.env.CHROMA_TENANT,
+    //     database: process.env.CHROMA_DATABASE,
+    //   },
+    // })
+
+    const vectorStore = await QdrantVectorStore.fromExistingCollection(embeddings, {
+      url: process.env.QDRANT_URL,
       collectionName: "assignment-3",
-      url : process.env.CHROMA_DB_URL
-    })
+      apiKey: process.env.QDRANT_API_KEY,
+    });
 
     await vectorStore.addDocuments(splits)
 

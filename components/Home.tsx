@@ -11,10 +11,20 @@ export default function Home() {
     const hasMessages = messages.length > 0;
 
     return (
-        <div className={hasMessages ? "relative flex min-h-0 w-full flex-1 flex-col px-4 pt-8" : "flex w-full flex-1 flex-col items-center justify-center gap-6 px-4 py-8"}>
-            {!hasMessages && <Hero />}
-            <ChatHistory messages={messages}/>
-            <Chat input={input} setInput={setInput} messages={messages} setMessages={setMessages} />
+        <div className="relative flex min-h-0 w-full flex-1 flex-col px-4">
+            {!hasMessages && (
+                <div className="flex flex-1 items-center justify-center">
+                    <Hero />
+                </div>
+            )}
+            {hasMessages && (
+                <div className="flex-1 overflow-y-auto pt-8">
+                    <ChatHistory messages={messages}/>
+                </div>
+            )}
+            <div className="sticky bottom-0 z-20 w-full bg-background py-4">
+                <Chat input={input} setInput={setInput} messages={messages} setMessages={setMessages} />
+            </div>
         </div>
     )
 }

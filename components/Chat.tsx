@@ -65,8 +65,8 @@ export default function Chat({ input, setInput, messages, setMessages }: {
         }
     }
     return (
-        <div className={hasMessages ? "sticky inset-x-0 bottom-0 z-20 w-full bg-background px-4 py-4" : "flex w-full justify-center"}>
-            <div className={hasMessages ? "relative mx-auto w-full max-w-3xl" : "relative w-full max-w-md"}>
+        <div className="flex w-full justify-center">
+            <div className="relative w-full max-w-3xl">
                 <Input
                     value={input}
                     className="h-10 min-h-10 rounded-full py-2 pr-12 pl-4 shadow-sm"
