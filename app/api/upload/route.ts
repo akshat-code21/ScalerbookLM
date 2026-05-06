@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import fs from "fs"
 import path from "path"
+import { ingestFile } from "@/lib/ingest"
 
 const UPLOAD_DIR = path.resolve(process.env.ROOT_PATH ?? "", "public/uploads")
 export async function POST(req: NextRequest) {
@@ -9,7 +10,7 @@ export async function POST(req: NextRequest) {
     const body = Object.fromEntries(formData)
     const file = (body.file as Blob) || null
 
-    let prefix = Date.now()
+    const prefix = Date.now()
 
     if (file) {
       const buffer = Buffer.from(await file.arrayBuffer())
@@ -21,6 +22,8 @@ export async function POST(req: NextRequest) {
         path.resolve(UPLOAD_DIR, `${prefix}-${(body.file as File).name}`),
         buffer
       )
+
+      await ingestFile(body.file as File, `${prefix}-${(body.file as File).name}`)
     } else {
       return NextResponse.json({
         success: false,
