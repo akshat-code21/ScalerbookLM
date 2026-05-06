@@ -5,6 +5,7 @@ export const retrieveContext = async (query: string) => {
   const embeddings = createOpenRouterEmbeddings()
   const vectorStore = new Chroma(embeddings, {
     collectionName: "assignment-3",
+    url : process.env.CHROMA_DB_URL
   })
 
   const retrievedDocs = await vectorStore.similaritySearch(query, 2)

@@ -65,6 +65,7 @@ export const ingestFile = async (file: File, storedFileName?: string) => {
     }
     const vectorStore = new Chroma(embeddings, {
       collectionName: "assignment-3",
+      url : process.env.CHROMA_DB_URL
     })
 
     await vectorStore.addDocuments(splits)
