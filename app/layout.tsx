@@ -3,8 +3,9 @@ import { Geist, Geist_Mono, DM_Sans } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import Header from "@/components/header";
 
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' })
 
@@ -26,12 +27,19 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <SidebarProvider>
-             <AppSidebar />
-             <main>
-               <SidebarTrigger />
-              {children}
-             </main>
+          <SidebarProvider style={
+            {
+              "--sidebar-width": "20rem",
+              "--sidebar-width-mobile": "20rem",
+            } as React.CSSProperties
+          }>
+            <AppSidebar />
+            <SidebarInset>
+              <Header />
+              <div className="flex min-h-0 flex-1 flex-col">
+                {children}
+              </div>
+            </SidebarInset>
           </SidebarProvider>
         </ThemeProvider>
       </body>
