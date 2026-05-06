@@ -2,31 +2,47 @@ import path from "node:path"
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters"
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf"
 import { CSVLoader } from "@langchain/community/document_loaders/fs/csv"
-import { UnstructuredLoader } from "@langchain/community/document_loaders/fs/unstructured"
+import { TextLoader } from "@langchain/classic/document_loaders/fs/text"
 import { Chroma } from "@langchain/community/vectorstores/chroma"
 import { createOpenRouterEmbeddings } from "./embedding"
 
 const uploadDir = () =>
   path.resolve(process.env.ROOT_PATH ?? "", "public/uploads")
 
+const textExtensions = new Set([
+  ".txt",
+  ".md",
+  ".json",
+  ".html",
+  ".xml",
+  ".js",
+  ".ts",
+  ".tsx",
+  ".jsx",
+])
+
 export const ingestFile = async (file: File, storedFileName?: string) => {
   try {
-    const filePath = path.join(uploadDir(), storedFileName ?? file.name)
+    const fileName = storedFileName ?? file.name
+    const filePath = path.join(uploadDir(), fileName)
+    const extension = path.extname(fileName).toLowerCase()
     let docs
-    if (file.type === "application/pdf") {
+    if (file.type === "application/pdf" || extension === ".pdf") {
       const loader = new PDFLoader(filePath)
       docs = await loader.load()
-    } else if (file.type === "text/csv") {
+    } else if (file.type === "text/csv" || extension === ".csv") {
       const loader = new CSVLoader(filePath)
       docs = await loader.load()
-    } else {
-      const loader = new UnstructuredLoader(filePath)
+    } else if (file.type.startsWith("text/") || textExtensions.has(extension)) {
+      const loader = new TextLoader(filePath)
       docs = await loader.load()
+    } else {
+      throw new Error(`Unsupported file type: ${file.type || extension || file.name}`)
     }
 
     const splitter = new RecursiveCharacterTextSplitter({
-      chunkSize: 100,
-      chunkOverlap: 0,
+      chunkSize: 1000,
+      chunkOverlap: 150,
     })
 
     const splits = await splitter.splitDocuments(docs)
@@ -58,5 +74,6 @@ export const ingestFile = async (file: File, storedFileName?: string) => {
     console.log("added document embeddings to vector store");
   } catch (error) {
     console.error(error);
+    throw error;
   }
 }

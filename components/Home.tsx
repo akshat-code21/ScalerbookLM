@@ -11,7 +11,7 @@ export default function Home() {
     const hasMessages = messages.length > 0;
 
     return (
-        <div className={hasMessages ? "relative flex w-full flex-1 flex-col items-center justify-center gap-6 px-4 pt-8 pb-24" : "flex w-full flex-1 flex-col items-center justify-center gap-6 px-4 py-8"}>
+        <div className={hasMessages ? "relative flex min-h-0 w-full flex-1 flex-col px-4 pt-8" : "flex w-full flex-1 flex-col items-center justify-center gap-6 px-4 py-8"}>
             {!hasMessages && <Hero />}
             <ChatHistory messages={messages}/>
             <Chat input={input} setInput={setInput} messages={messages} setMessages={setMessages} />
