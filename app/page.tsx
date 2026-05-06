@@ -1,3 +1,4 @@
+import Example from "@/components/file-upload-dropzone-1"
 import { Button } from "@/components/ui/button"
 
 export default function Page() {
