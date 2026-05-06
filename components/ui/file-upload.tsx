@@ -17,6 +17,8 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { useAsRef } from "@/hooks/use-as-ref";
 import { useLazyRef } from "@/hooks/use-lazy-ref";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { File02Icon } from "@hugeicons/core-free-icons";
 
 const ROOT_NAME = "FileUpload";
 const DROPZONE_NAME = "FileUploadDropzone";
@@ -52,7 +54,7 @@ function getFileIcon(file: File) {
     type.startsWith("text/") ||
     ["txt", "md", "rtf", "pdf"].includes(extension)
   ) {
-    return <FileTextIcon />;
+    return <HugeiconsIcon icon={File02Icon} />;
   }
 
   if (
@@ -88,7 +90,7 @@ function getFileIcon(file: File) {
     return <FileCogIcon />;
   }
 
-  return <FileIcon />;
+  return <HugeiconsIcon icon={File02Icon} />;
 }
 
 type Direction = "ltr" | "rtl";
@@ -1042,7 +1044,7 @@ function FileUploadItem(props: FileUploadItemProps) {
         dir={context.dir}
         {...itemProps}
         className={cn(
-          "relative flex items-center gap-2.5 rounded-md border p-3",
+          "relative flex items-center gap-2.5 overflow-hidden rounded-md border p-3",
           className,
         )}
       >
@@ -1107,7 +1109,7 @@ function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
       data-slot="file-upload-preview"
       {...previewProps}
       className={cn(
-        "relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded border bg-accent/50 [&>svg]:size-10",
+        "relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded [&>svg]:size-10",
         className,
       )}
     >
@@ -1258,7 +1260,6 @@ function FileUploadItemProgress(props: FileUploadItemProgressProps) {
 
     case "fill": {
       const progressPercentage = itemContext.fileState.progress;
-      const topInset = 100 - progressPercentage;
 
       return (
         <ItemProgressPrimitive
@@ -1271,13 +1272,15 @@ function FileUploadItemProgress(props: FileUploadItemProgressProps) {
           data-slot="file-upload-progress"
           {...progressProps}
           className={cn(
-            "absolute inset-0 bg-primary/50 transition-[clip-path] duration-300 ease-linear",
+            "pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-md",
             className,
           )}
-          style={{
-            clipPath: `inset(${topInset}% 0% 0% 0%)`,
-          }}
-        />
+        >
+          <div
+            className="h-full rounded-md bg-primary/50 transition-[width] duration-300 ease-linear"
+            style={{ width: `${progressPercentage}%` }}
+          />
+        </ItemProgressPrimitive>
       );
     }
 
