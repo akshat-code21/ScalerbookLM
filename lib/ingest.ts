@@ -3,6 +3,7 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters"
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf"
 import { CSVLoader } from "@langchain/community/document_loaders/fs/csv"
 import { TextLoader } from "@langchain/classic/document_loaders/fs/text"
+import { PDFParse } from "pdf-parse"
 import { Chroma } from "@langchain/community/vectorstores/chroma"
 import { createOpenRouterEmbeddings } from "./embedding"
 import { getUploadsDir } from "./uploads"
@@ -27,7 +28,9 @@ export const ingestFile = async (file: File, storedFileName?: string) => {
     const extension = path.extname(fileName).toLowerCase()
     let docs
     if (file.type === "application/pdf" || extension === ".pdf") {
-      const loader = new PDFLoader(filePath)
+      const loader = new PDFLoader(filePath, {
+        pdfjs: async () => ({ isV2: true as const, PDFParse }),
+      })
       docs = await loader.load()
     } else if (file.type === "text/csv" || extension === ".csv") {
       const loader = new CSVLoader(filePath)
