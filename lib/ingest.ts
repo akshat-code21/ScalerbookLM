@@ -95,9 +95,18 @@ export const ingestFile = async (file: File, storedFileName?: string) => {
       apiKey: process.env.QDRANT_API_KEY,
     });
 
-    await vectorStore.addDocuments(splits)
+    // Batch documents to avoid exceeding the embedding API's
+    // 300,000 token-per-request limit on large uploads.
+    const BATCH_SIZE = 50
+    for (let i = 0; i < splits.length; i += BATCH_SIZE) {
+      const batch = splits.slice(i, i + BATCH_SIZE)
+      await vectorStore.addDocuments(batch)
+      console.log(
+        `[ingest] embedded batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(splits.length / BATCH_SIZE)} (${batch.length} chunks)`
+      )
+    }
 
-    console.log("added document embeddings to vector store");
+    console.log(`[ingest] finished — added all ${splits.length} chunks to vector store`);
   } catch (error) {
     console.error(error);
     throw error;
