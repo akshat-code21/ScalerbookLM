@@ -31,18 +31,17 @@ async function gradeDocument(
     .replace("{question}", query)
 
   try {
-    const res = await client.chat.send({
-      chatRequest: {
-        model: "openai/gpt-oss-120b:free",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0,
-      },
-    })
+    const res = await client.chat.completions.create({
+      model: "gpt-5.4-nano",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0,
+    },
+    )
 
     const response = (res.choices[0]?.message?.content ?? "")
       .trim()

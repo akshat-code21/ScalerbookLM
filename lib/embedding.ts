@@ -7,18 +7,8 @@ export function createOpenRouterEmbeddings() {
   }
 
   return new OpenAIEmbeddings({
-    model: "nvidia/llama-nemotron-embed-vl-1b-v2:free",
+    model: "text-embedding-3-small",
     apiKey,
     encodingFormat: "float",
-    configuration: {
-      baseURL: "https://openrouter.ai/api/v1",
-      ...(process.env.OPENROUTER_HTTP_REFERER
-        ? {
-          defaultHeaders: {
-            "HTTP-Referer": process.env.OPENROUTER_HTTP_REFERER,
-          },
-        }
-        : {}),
-    },
   })
 }

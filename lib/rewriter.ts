@@ -25,17 +25,15 @@ export async function rewriteQuery(
     .replace("{currentQuery}", currentQuery === originalQuery ? "N/A" : currentQuery)
 
   try {
-    const res = await client.chat.send({
-      chatRequest: {
-        model: "qwen/qwen3-1.7b:free",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-      },
+    const res = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.7,
     })
 
     const rewritten = (res.choices[0]?.message?.content ?? "").trim()

@@ -2,6 +2,7 @@ import { client } from "./openrouter"
 import { SYSTEM_PROMPT } from "./prompt"
 import { executeCRAG } from "./crag"
 import { ChatMessages } from "@openrouter/sdk/models"
+import { ChatCompletionMessage, ChatCompletionMessageParam } from "openai/resources/index.mjs"
 
 export const chat = async (query: string) => {
   const cragResult = await executeCRAG(query)
@@ -21,13 +22,18 @@ export const chat = async (query: string) => {
       role: "user",
       content: query,
     },
-  ] as ChatMessages[]
+  ] as ChatCompletionMessageParam[]
 
-  const res = await client.chat.send({
-    chatRequest: {
-      model: "openai/gpt-oss-120b:free",
-      messages,
-    },
+  // const res = await client.chat.send({
+  //   chatRequest: {
+  //     model: "openai/gpt-oss-120b:free",
+  //     messages,
+  //   },
+  // })
+
+  const res = await client.chat.completions.create({
+    messages,
+    model: "gpt-5.4-nano"
   })
 
   messages.push({
@@ -56,14 +62,12 @@ export const chatStream = async (query: string) => {
       role: "user",
       content: query,
     },
-  ] as ChatMessages[]
+  ] as ChatCompletionMessageParam[]
 
-  const stream = await client.chat.send({
-    chatRequest: {
-      model: "openai/gpt-oss-120b:free",
-      messages,
-      stream: true,
-    },
+  const stream = await client.chat.completions.create({
+    model: "gpt-5.4-nano",
+    messages,
+    stream: true,
   })
 
   const encoder = new TextEncoder()
