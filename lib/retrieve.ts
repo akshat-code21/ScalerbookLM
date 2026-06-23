@@ -1,8 +1,8 @@
-import { Chroma } from "@langchain/community/vectorstores/chroma"
 import { createOpenRouterEmbeddings } from "./embedding"
-import { QdrantVectorStore } from "@langchain/qdrant";
+import { QdrantVectorStore } from "@langchain/qdrant"
+import { Document } from "@langchain/core/documents"
 
-export const retrieveContext = async (query: string) => {
+export const retrieveDocuments = async (query: string, topK = 4): Promise<Document[]> => {
   const embeddings = createOpenRouterEmbeddings()
   // const vectorStore = new Chroma(embeddings, {
   //   collectionName: "assignment-3",
@@ -19,11 +19,13 @@ export const retrieveContext = async (query: string) => {
     url: process.env.QDRANT_URL,
     collectionName: "assignment-3",
     apiKey: process.env.QDRANT_API_KEY,
-  });
+  })
 
-  const retrievedDocs = await vectorStore.similaritySearch(query, 2)
-  const serialized = retrievedDocs
+  return await vectorStore.similaritySearch(query, topK)
+}
+
+export const serializeDocuments = (docs: Document[]): string => {
+  return docs
     .map((doc) => `Source: ${doc.metadata.source}\nContent: ${doc.pageContent}`)
-    .join("\n")
-  return serialized
+    .join("\n\n")
 }

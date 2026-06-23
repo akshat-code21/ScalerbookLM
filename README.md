@@ -1,6 +1,6 @@
 # ScalerbookLM
 
-An AI-powered document assistant that lets you **upload documents and chat with them** using Retrieval-Augmented Generation (RAG). Get accurate, context-grounded answers — no hallucinations.
+An AI-powered document assistant that lets you **upload documents and chat with them** using **Corrective RAG (CRAG)**. Features an iterative retrieval loop with LLM-as-judge relevance grading and SLM-powered query rewriting for self-correcting, hallucination-free answers.
 
 ---
 
@@ -8,7 +8,7 @@ An AI-powered document assistant that lets you **upload documents and chat with 
 
 - **Document Upload** — Drag-and-drop or browse to upload PDFs, CSVs, text files, and more
 - **Vector Embeddings** — Documents are chunked and embedded into Qdrant for semantic search
-- **RAG Chat** — Ask questions and receive answers strictly grounded in your uploaded documents
+- **Corrective RAG** — Iterative retrieve → grade → rewrite loop ensures only relevant context reaches the LLM
 - **Streaming Responses** — Real-time token-by-token response streaming for a smooth chat experience
 - **Multi-Phase Upload Status** — Visual feedback for upload progress, embedding processing, and completion
 - **Dark Mode** — Sleek dark-themed UI with a responsive sidebar layout
@@ -19,29 +19,48 @@ An AI-powered document assistant that lets you **upload documents and chat with 
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌───────────────────┐
-│   Frontend   │────▶│  Next.js API  │────▶│   OpenRouter LLM  │
-│  (React/TSX) │     │   Routes      │     │  (gpt-oss-120b)   │
+│  Frontend   │────▶│  Next.js API │────▶│   OpenRouter LLM  │
+│ (React/TSX) │     │   Routes     │     │  (gpt-oss-120b)   │
 └─────────────┘     └──────┬───────┘     └───────────────────┘
                            │
                     ┌──────┴───────┐
                     │              │
-              ┌─────▼─────┐ ┌─────▼──────┐
-              │  Ingest    │ │  Retrieve  │
-              │  Pipeline  │ │  Pipeline  │
-              └─────┬─────┘ └─────┬──────┘
-                    │             │
-                    ▼             ▼
+              ┌─────▼─────┐ ┌──────▼──────────────────────────┐
+              │  Ingest   │ │  Corrective RAG Pipeline        │
+              │  Pipeline │ │                                 │
+              └─────┬─────┘ │  ┌──────────┐                   │
+                    │       │  │ Retrieve │◄──── Loop (max 3) │
+                    │       │  └────┬─────┘        │          │
+                    │       │       │              │          │
+                    │       │  ┌────▼─────┐        │          │
+                    │       │  │  Grade    │       │          │
+                    │       │  │(LLM Judge)│       │          │
+                    │       │  └────┬─────┘        │          │
+                    │       │       │              │          │
+                    │       │   relevant?          │          │
+                    │       │    yes│  no          │          │
+                    │       │       │  ┌──────────┐│          │
+                    │       │       │  │ Rewrite  ├┘          │
+                    │       │       │  │ (SLM)    │           │
+                    │       │       │  └──────────┘           │
+                    │       │  ┌────▼─────┐                   │
+                    │       │  │ Generate │                   │
+                    │       │  └──────────┘                   │
+                    │       └─────────────────────────────────┘
+                    ▼
               ┌───────────────────────┐
               │   Qdrant Vector DB    │
               │   (Cloud / Managed)   │
               └───────────────────────┘
 ```
 
-### RAG Pipeline
+### Corrective RAG Pipeline
 
 1. **Ingest** — Upload → Parse document (PDF/CSV/Text) → Split into chunks → Generate embeddings via OpenRouter → Store in Qdrant
-2. **Retrieve** — User query → Embed query → Similarity search in Qdrant → Retrieve top-2 relevant chunks
-3. **Generate** — Inject retrieved context into system prompt → Stream LLM response back to the user
+2. **Retrieve** — User query → Embed query → Similarity search in Qdrant → Retrieve top-4 candidate chunks
+3. **Grade** — LLM-as-judge (`gpt-oss-120b`) evaluates each document for relevance (parallel grading)
+4. **Correct** — If all docs irrelevant → SLM (`qwen3-1.7b`) rewrites query → re-retrieve → re-grade (up to 3 iterations)
+5. **Generate** — Inject graded, relevant context into system prompt → Stream LLM response back to the user
 
 ---
 
@@ -52,6 +71,7 @@ An AI-powered document assistant that lets you **upload documents and chat with 
 | **Framework** | [Next.js 16](https://nextjs.org/) (Turbopack)                      |
 | **Frontend**  | React 19, TailwindCSS 4, shadcn/ui, Radix UI                       |
 | **LLM**       | [OpenRouter](https://openrouter.ai/) — `openai/gpt-oss-120b:free`  |
+| **SLM (Rewriter)** | OpenRouter — `qwen/qwen3-1.7b:free`                          |
 | **Embeddings**| OpenRouter — `nvidia/llama-nemotron-embed-vl-1b-v2:free`            |
 | **Vector DB** | [Qdrant Cloud](https://qdrant.tech/)                                |
 | **Orchestration** | [LangChain](https://js.langchain.com/) (TS)                   |
@@ -131,11 +151,14 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 │   └── ui/                     # shadcn/ui primitives
 ├── lib/
 │   ├── chat.ts                  # Chat & streaming logic
+│   ├── crag.ts                  # Corrective RAG orchestrator (iterative loop)
 │   ├── embedding.ts             # OpenRouter embedding config
+│   ├── grader.ts                # LLM-as-judge relevance grading
 │   ├── ingest.ts                # Document parsing & vector ingestion
 │   ├── openrouter.ts            # OpenRouter client setup
-│   ├── prompt.ts                # RAG system prompt template
-│   ├── retrieve.ts              # Qdrant similarity search
+│   ├── prompt.ts                # CRAG-aware system prompt template
+│   ├── retrieve.ts              # Qdrant similarity search & document serialization
+│   ├── rewriter.ts              # SLM query rewriter (qwen3-1.7b)
 │   └── uploads.ts               # Upload path utilities
 └── package.json
 ```
